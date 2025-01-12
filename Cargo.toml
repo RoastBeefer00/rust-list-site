@@ -1,0 +1,17 @@
+[package]
+name = "rust-list-site"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+askama = { version = "0.12.1", features = ["serde", "with-axum"] }
+askama_axum = "0.4.0"
+axum = { version = "0.8.1", features = ["macros"] }
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
+firebase-auth = "0.4.3"
+jsonwebtoken = "9.3.0"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+tokio = { version = "1.43.0", features = ["full"] }
+tower-http = "0.6.2"
+uuid = { version = "1.11.1", features = ["serde", "v4"] }

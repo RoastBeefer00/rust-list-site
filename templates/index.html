@@ -1,0 +1,103 @@
+{% import "macros/todo.html" as todo_macro %}
+
+<!DOCTYPE html>
+<html class="min-h-screen bg-gray-900 text-white">
+
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"
+        integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+        crossorigin="anonymous"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js'
+        import { GoogleAuthProvider, getAuth, signInWithRedirect, getRedirectResult, setPersistence } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js';
+
+        const provider = new GoogleAuthProvider();
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAwYYAbVrDERwdpRp4kOU8fh5lW6fqFt0s',
+            authDomain: 'r-j-magenta-carrot-42069.firebaseapp.com',
+            projectId: 'r-j-magenta-carrot-42069',
+        };
+
+        let auth_token = null;
+        const app = initializeApp(firebaseConfig);
+        let auth = getAuth(app);
+
+        auth.onAuthStateChanged(async user => {
+            console.log(user);
+            if (!user) {
+                signInWithRedirect(auth, provider);
+            } else {
+                let token = await user.getIdToken(true);
+                auth_token = token;
+            }
+        });
+
+        // getRedirectResult(auth)
+        //     .then((result) => {
+        //         console.log(result);
+        //         // This gives you a Google Access Token. You can use it to access Google APIs.
+        //         const credential = GoogleAuthProvider.credentialFromResult(result);
+        //         const token = credential.accessToken;
+        //         authToken = token
+        //
+        //         // The signed-in user info.
+        //         // const user = result.user;
+        //         // IdP data available using getAdditionalUserInfo(result)
+        //         // ...
+        //     }).catch((error) => {
+        //         console.log("Error with redirect: " + error.message);
+        //         // Handle Errors here.
+        //         const errorCode = error.code;
+        //         const errorMessage = error.message;
+        //         // The email of the user's account used.
+        //         // const email = error.customData.email;
+        //         // The AuthCredential type that was used.
+        //         // const credential = GoogleAuthProvider.credentialFromError(error);
+        //         // ...
+        //         // signInWithRedirect(auth, provider);
+        //     });
+
+        // gate htmx requests on the auth token
+        htmx.on("htmx:confirm", (e)=> {
+            // if there is no auth token
+            if(auth_token == null) {
+                // stop the regular request from being issued
+                e.preventDefault() 
+                // only issue it once the auth promise has resolved
+                // auth.then(() => e.detail.issueRequest()) 
+            }
+        })
+
+        // add the auth token to the request as a header
+        htmx.on("htmx:configRequest", (e)=> {
+            console.log(auth_token);
+            e.detail.headers["AUTHORIZATION"] = "Bearer " + auth_token
+        })
+    </script>
+    <title id="title">Todo List</title>
+</head>
+
+<body>
+    <div>
+        <h1 class="text-3xl font-bold text-center mt-8" id="title">Todo List</h1>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button hx-get="/auth" hx-target="#auth" hx-trigger="click" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2">Auth</button>
+        <span id="auth"></span>
+    <div class="container mx-auto mt-8">
+        <form hx-post="/todo" hx-target="#todos" hx-swap="beforeend" class="flex items-center">
+            <input type="text" name="text" id="text" class="border border-gray-700 bg-gray-800 text-white rounded-lg px-4 py-2 mr-2"
+                placeholder="Add a new todo" />
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Add</button>
+        </form>
+        <ul id="todos" class="mt-4">
+            {% for todo in todos %}
+            {% call todo_macro::todo_item(todo) %}
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+
+</html>
