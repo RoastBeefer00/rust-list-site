@@ -8,7 +8,6 @@ use axum::{
 };
 use firestore::{FirestoreDb, FirestoreDbOptions};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use super::FirebaseUser;
 
@@ -23,7 +22,8 @@ where
         _parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let db = FirestoreDb::from_ref(&state.db);
+        let state = AppState::from_ref(&state);
+        let db = state.db;
         Ok(db)
     }
 }

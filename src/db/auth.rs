@@ -4,7 +4,7 @@ use axum::{
     http::{self, request::Parts, StatusCode},
     response::{IntoResponse, Response},
 };
-use firebase_auth::{FirebaseAuthState, FirebaseProvider};
+use firebase_auth::FirebaseProvider;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -33,18 +33,16 @@ fn get_bearer_token(header: &str) -> Option<String> {
     }
 }
 
-impl FromRequestParts<AppState> for FirebaseUser
+impl<S> FromRequestParts<S> for FirebaseUser
 where
-    AppState: FromRef<AppState>,
-    AppState: Send + Sync,
+    AppState: FromRef<S>,
+    S: Send + Sync,
 {
     type Rejection = UnauthorizedResponse;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &AppState,
-    ) -> Result<Self, Self::Rejection> {
-        let store = FirebaseAuthState::from_ref(&state.auth);
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let state = AppState::from_ref(&state);
+        let store = state.auth;
 
         let auth_header = parts
             .headers

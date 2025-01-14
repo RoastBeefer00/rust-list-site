@@ -1,14 +1,12 @@
 use anyhow::Result;
 use axum::{
-    routing::{delete, get, post},
+    routing::{get, post},
     Router,
 };
-use db::{delete_list, new_db, update_list, write_list, FirebaseUser};
+use db::{delete_list, new_db, update_list, write_list};
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
-// use handlers::{add_todo, auth, remove_todo, toggle_todo};
 use handlers::auth;
-use tokio::sync::RwLock;
 use uuid::Uuid;
 use views::IndexTemplate;
 
