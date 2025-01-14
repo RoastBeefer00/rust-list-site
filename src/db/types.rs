@@ -1,6 +1,9 @@
+use firebase_auth::FirebaseUser;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+// A list
+// Will be a single document in the list_items collection
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct List {
     pub id: Uuid,
@@ -16,10 +19,23 @@ pub struct ListItem {
     pub complete: bool,
 }
 
+// A user from the site
+// Contains the lists the user has access to
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
-    pub name: String,
-    pub email: String,
+    pub name: Option<String>,
+    pub email: Option<String>,
     pub lists: Vec<List>,
+}
+
+impl From<FirebaseUser> for User {
+    fn from(user: FirebaseUser) -> Self {
+        User {
+            id: user.user_id,
+            name: user.name,
+            email: user.email,
+            lists: vec![],
+        }
+    }
 }
