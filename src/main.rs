@@ -3,7 +3,7 @@ use axum::{
     routing::{delete, get, post},
     Router,
 };
-use db::{new_db, FirebaseUser};
+use db::{delete_list, new_db, update_list, write_list, FirebaseUser};
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
 // use handlers::{add_todo, auth, remove_todo, toggle_todo};
@@ -44,6 +44,9 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(IndexTemplate::render))
         .route("/auth", get(auth))
+        .route("/write", post(write_list))
+        .route("/update", post(update_list))
+        .route("/delete", post(delete_list))
         // .route("/todo", post(add_todo))
         // .route("/todo/{id}", delete(remove_todo).patch(toggle_todo))
         .with_state(app_state);

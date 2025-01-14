@@ -25,7 +25,6 @@
         let auth = getAuth(app);
 
         auth.onAuthStateChanged(async user => {
-            console.log(user);
             if (!user) {
                 signInWithRedirect(auth, provider);
             } else {
@@ -33,31 +32,6 @@
                 auth_token = token;
             }
         });
-
-        // getRedirectResult(auth)
-        //     .then((result) => {
-        //         console.log(result);
-        //         // This gives you a Google Access Token. You can use it to access Google APIs.
-        //         const credential = GoogleAuthProvider.credentialFromResult(result);
-        //         const token = credential.accessToken;
-        //         authToken = token
-        //
-        //         // The signed-in user info.
-        //         // const user = result.user;
-        //         // IdP data available using getAdditionalUserInfo(result)
-        //         // ...
-        //     }).catch((error) => {
-        //         console.log("Error with redirect: " + error.message);
-        //         // Handle Errors here.
-        //         const errorCode = error.code;
-        //         const errorMessage = error.message;
-        //         // The email of the user's account used.
-        //         // const email = error.customData.email;
-        //         // The AuthCredential type that was used.
-        //         // const credential = GoogleAuthProvider.credentialFromError(error);
-        //         // ...
-        //         // signInWithRedirect(auth, provider);
-        //     });
 
         // gate htmx requests on the auth token
         htmx.on("htmx:confirm", (e)=> {
@@ -86,6 +60,19 @@
     <div class="flex justify-center mt-4">
         <button hx-get="/auth" hx-target="#auth" hx-trigger="click" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2">Auth</button>
         <span id="auth"></span>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button hx-post="/write" hx-target="#write" hx-trigger="click" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Write</button>
+        <span id="write"></span>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button hx-post="/update" hx-target="#write" hx-trigger="click" class="bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg px-4 py-2">Update</button>
+        <span id="write"></span>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button hx-post="/delete" hx-target="#write" hx-trigger="click" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2">Delete</button>
+        <span id="write"></span>
+    </div>
     <div class="container mx-auto mt-8">
         <form hx-post="/todo" hx-target="#todos" hx-swap="beforeend" class="flex items-center">
             <input type="text" name="text" id="text" class="border border-gray-700 bg-gray-800 text-white rounded-lg px-4 py-2 mr-2"
