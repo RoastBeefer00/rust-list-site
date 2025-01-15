@@ -1,4 +1,5 @@
 use anyhow::Result;
+use axum::response::IntoResponse;
 use axum::{
     routing::{get, post},
     Router,
@@ -6,7 +7,7 @@ use axum::{
 use db::{delete_list, new_db, update_list, write_list};
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
-use handlers::auth;
+use handlers::{auth, index};
 use uuid::Uuid;
 use views::IndexTemplate;
 
@@ -40,7 +41,7 @@ async fn main() -> Result<()> {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
 
     let app = Router::new()
-        .route("/", get(IndexTemplate::render))
+        .route("/", get(index))
         .route("/auth", get(auth))
         .route("/write", post(write_list))
         .route("/update", post(update_list))

@@ -3,16 +3,21 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use firestore::FirestoreDb;
+use uuid::Uuid;
 
-use super::firestore::List;
+use crate::views::{List, ListItem};
 use super::FirebaseUser;
 
 pub async fn write_list(user: FirebaseUser, db: FirestoreDb) -> Response {
     let list = List {
-        id: 69,
+        id: Uuid::new_v4(),
         name: "My List".to_string(),
         owner: user.user_id,
-        items: vec!["item1".to_string(), "item2".to_string()],
+        items: vec![ListItem {
+            id: Uuid::new_v4(),
+            text: "Item 1".to_string(),
+            complete: false,
+        }],
     };
     match db
         .fluent()
@@ -30,10 +35,14 @@ pub async fn write_list(user: FirebaseUser, db: FirestoreDb) -> Response {
 
 pub async fn update_list(user: FirebaseUser, db: FirestoreDb) -> Response {
     let list = List {
-        id: 69,
+        id: Uuid::new_v4(),
         name: "My List".to_string(),
         owner: user.user_id,
-        items: vec!["item1".to_string(), "item3".to_string()],
+        items: vec![ListItem {
+            id: Uuid::new_v4(),
+            text: "Item 2".to_string(),
+            complete: false,
+        }],
     };
     match db
         .fluent()

@@ -1,10 +1,6 @@
-use crate::{AppState, Todo};
 use askama_axum::Template;
-use axum::{
-    extract::State,
-    response::{Html, IntoResponse, Response},
-};
-use std::sync::Arc;
+use axum::response::{Html, IntoResponse, Response};
+use super::{index::IndexTemplate, list::List, list_group::ListGroup, list_item::ListItem};
 
 // Define a macro called 'impl_into_response_for_template'
 macro_rules! impl_into_response_for_template {
@@ -26,4 +22,9 @@ macro_rules! impl_into_response_for_template {
 }
 
 // Using the macro
-impl_into_response_for_template!(IndexTemplate<'_>);
+impl_into_response_for_template!(
+    IndexTemplate,
+    List,
+    ListItem,
+    ListGroup
+);

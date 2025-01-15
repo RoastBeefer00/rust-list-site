@@ -1,5 +1,3 @@
-{% import "macros/todo.html" as todo_macro %}
-
 <!DOCTYPE html>
 <html class="min-h-screen bg-gray-900 text-white">
 
@@ -80,9 +78,6 @@
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Add</button>
         </form>
         <ul id="todos" class="mt-4">
-            {% for todo in todos %}
-            {% call todo_macro::todo_item(todo) %}
-            {% endfor %}
         </ul>
     </div>
 </body>
