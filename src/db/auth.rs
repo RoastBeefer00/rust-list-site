@@ -41,8 +41,8 @@ where
     type Rejection = UnauthorizedResponse;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let state = AppState::from_ref(&state);
-        let store = state.auth;
+        let state = AppState::from_ref(state);
+        let auth = state.auth;
 
         let auth_header = parts
             .headers
@@ -57,7 +57,7 @@ where
             Ok,
         )?;
 
-        match store.firebase_auth.verify(&bearer) {
+        match auth.firebase_auth.verify(&bearer) {
             Err(e) => Err(UnauthorizedResponse {
                 msg: format!("Failed to verify Token: {}", e),
             }),
