@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use axum::response::IntoResponse;
 use axum::{
@@ -18,7 +20,7 @@ mod views;
 #[derive(Clone)]
 pub struct AppState {
     pub auth: FirebaseAuthState,
-    pub db: FirestoreDb,
+    pub db: Arc<FirestoreDb>,
 }
 
 #[tokio::main]
@@ -28,7 +30,7 @@ async fn main() -> Result<()> {
 
     let app_state = AppState {
         auth: FirebaseAuthState::new(firebase_auth),
-        db,
+        db: Arc::new(db),
     };
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;

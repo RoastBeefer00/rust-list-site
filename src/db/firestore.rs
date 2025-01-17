@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::AppState;
 use anyhow::anyhow;
 use anyhow::Result;
@@ -11,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use super::FirebaseUser;
 
-impl FromRequestParts<AppState> for FirestoreDb
+impl FromRequestParts<AppState> for Arc<FirestoreDb>
 where
     AppState: FromRef<AppState>,
     AppState: Send + Sync,

@@ -21,7 +21,7 @@ pub struct CreateListForm {
 
 pub async fn write_list(
     user: FirebaseUser,
-    db: FirestoreDb,
+    db: Arc<FirestoreDb>,
     Form(form): Form<CreateListForm>,
 ) -> Response {
     let list = List {
@@ -30,7 +30,6 @@ pub async fn write_list(
         owner: user.clone().user_id,
         items: vec![],
     };
-    let db = Arc::new(db);
     let user = Arc::new(user);
     let list_clone = list.clone();
     let create_list_future = {
