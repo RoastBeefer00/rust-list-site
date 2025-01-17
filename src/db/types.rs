@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::auth::FirebaseUser;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -18,6 +20,17 @@ impl From<FirebaseUser> for User {
             id: user.user_id,
             name: user.name,
             email: user.email,
+            lists: vec![],
+        }
+    }
+}
+
+impl From<Arc<FirebaseUser>> for User {
+    fn from(user: Arc<FirebaseUser>) -> Self {
+        User {
+            id: user.user_id.clone(),
+            name: user.name.clone(),
+            email: user.email.clone(),
             lists: vec![],
         }
     }

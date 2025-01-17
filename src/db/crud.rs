@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{anyhow, Result};
 use axum::{
     extract::Form,
@@ -28,19 +30,26 @@ pub async fn write_list(
         owner: user.clone().user_id,
         items: vec![],
     };
-    let db_clone = db.clone();
+    let db = Arc::new(db);
+    let user = Arc::new(user);
     let list_clone = list.clone();
-    let create_list_future = tokio::spawn(async move {
-        db_clone.fluent()
-            .insert()
-            .into("lists")
-            .document_id(&list.id.to_string())
-            .object(&list_clone)
-            .execute::<List>().await
-    });
-    let db_clone = db.clone();
-    let user_clone = user.clone();
-    let get_user_future = tokio::spawn(async move { get_user(&user_clone, &db_clone).await });
+    let create_list_future = {
+        let db = db.clone();
+        tokio::spawn(async move {
+            db.fluent()
+                .insert()
+                .into("lists")
+                .document_id(&list_clone.id.to_string())
+                .object(&list_clone)
+                .execute::<List>()
+                .await
+        })
+    };
+    let get_user_future = {
+        let db = db.clone();
+        let user = user.clone();
+        tokio::spawn(async move { get_user(&user, &db).await })
+    };
     if let Err(e) = create_list_future.await {
         return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
