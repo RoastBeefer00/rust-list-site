@@ -1,14 +1,15 @@
-use firebase_auth::FirebaseUser;
-use crate::views::List;
+use super::auth::FirebaseUser;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 // A user from the site
 // Contains the lists the user has access to
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub lists: Vec<List>,
+    pub lists: Vec<Uuid>,
 }
 
 impl From<FirebaseUser> for User {

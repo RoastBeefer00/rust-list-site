@@ -21,13 +21,6 @@ pub struct AppState {
     pub db: FirestoreDb,
 }
 
-#[derive(Clone, Debug)]
-pub struct Todo {
-    pub id: Uuid,
-    pub text: String,
-    pub complete: bool,
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let db = new_db().await?;
@@ -42,10 +35,10 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/auth", get(auth))
-        .route("/write", post(write_list))
-        .route("/update", post(update_list))
-        .route("/delete", post(delete_list))
+        // .route("/auth", get(auth))
+        // .route("/update", post(update_list))
+        // .route("/delete", post(delete_list))
+        .route("/lists/create", post(write_list))
         // .route("/todo", post(add_todo))
         // .route("/todo/{id}", delete(remove_todo).patch(toggle_todo))
         .with_state(app_state);
