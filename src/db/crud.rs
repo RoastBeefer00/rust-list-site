@@ -5,14 +5,16 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use firestore::FirestoreDb;
+use serde::Deserialize;
 use uuid::Uuid;
 
 use super::FirebaseUser;
 use crate::views::{List, ListItem};
 use crate::{db::types::User, views::ListPreview};
 
-struct CreateListForm {
-    name: String,
+#[derive(Deserialize)]
+pub struct CreateListForm {
+    pub name: String,
 }
 
 pub async fn write_list(
@@ -26,15 +28,19 @@ pub async fn write_list(
         owner: user.clone().user_id,
         items: vec![],
     };
-    let create_list_future = tokio::spawn(
-        db.fluent()
+    let db_clone = db.clone();
+    let list_clone = list.clone();
+    let create_list_future = tokio::spawn(async move {
+        db_clone.fluent()
             .insert()
             .into("lists")
             .document_id(&list.id.to_string())
-            .object(&list.clone())
-            .execute::<List>(),
-    );
-    let get_user_future = tokio::spawn(get_user(&user, &db));
+            .object(&list_clone)
+            .execute::<List>().await
+    });
+    let db_clone = db.clone();
+    let user_clone = user.clone();
+    let get_user_future = tokio::spawn(async move { get_user(&user_clone, &db_clone).await });
     if let Err(e) = create_list_future.await {
         return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
@@ -48,6 +54,11 @@ pub async fn write_list(
                     }
                 } else {
                     if let Err(e) = create_user(&user, &db).await {
+                        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+                    }
+                    let mut user = User::from(user);
+                    user.lists.push(list.id);
+                    if let Err(e) = update_user(user, &db).await {
                         return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
                     }
                 }
@@ -69,23 +80,24 @@ pub async fn update_list(
     db: FirestoreDb,
     Form(form): Form<UpdateListForm>,
 ) -> Response {
-    let list_item = ListItem {
-        id: Uuid::new_v4(),
-        text: form.text,
-        complete: false,
-    };
-    match db
-        .fluent()
-        .update()
-        .in_col("lists")
-        .document_id(&list.id.to_string())
-        .object(&list)
-        .execute::<List>()
-        .await
-    {
-        Ok(_) => (StatusCode::CREATED).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
+    // let list_item = ListItem {
+    //     id: Uuid::new_v4(),
+    //     text: form.text,
+    //     complete: false,
+    // };
+    // match db
+    //     .fluent()
+    //     .update()
+    //     .in_col("lists")
+    //     .document_id(&list.id.to_string())
+    //     .object(&list)
+    //     .execute::<List>()
+    //     .await
+    // {
+    //     Ok(_) => (StatusCode::CREATED).into_response(),
+    //     Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    // }
+    (StatusCode::OK).into_response()
 }
 
 pub async fn delete_list(_user: FirebaseUser, db: FirestoreDb) -> Response {
@@ -103,7 +115,7 @@ pub async fn delete_list(_user: FirebaseUser, db: FirestoreDb) -> Response {
 }
 
 pub async fn create_user(user: &FirebaseUser, db: &FirestoreDb) -> Result<()> {
-    let user = User::from(user);
+    let user = User::from(user.clone());
     match db
         .fluent()
         .insert()

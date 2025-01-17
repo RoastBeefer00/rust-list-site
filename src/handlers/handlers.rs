@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::db::FirebaseUser;
-use crate::{AppState, Todo};
+use crate::AppState;
 use axum::{
     debug_handler,
     extract::{Form, Path, State},
