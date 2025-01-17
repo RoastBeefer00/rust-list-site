@@ -19,7 +19,7 @@ mod views;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub auth: FirebaseAuthState,
+    pub auth: Arc<FirebaseAuthState>,
     pub db: Arc<FirestoreDb>,
 }
 
@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     let firebase_auth = FirebaseAuth::new("r-j-magenta-carrot-42069").await;
 
     let app_state = AppState {
-        auth: FirebaseAuthState::new(firebase_auth),
+        auth: Arc::new(FirebaseAuthState::new(firebase_auth)),
         db: Arc::new(db),
     };
 

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::AppState;
 use axum::{
     extract::{FromRef, FromRequestParts},
@@ -33,14 +35,17 @@ fn get_bearer_token(header: &str) -> Option<String> {
     }
 }
 
-impl<S> FromRequestParts<S> for FirebaseUser
+impl FromRequestParts<AppState> for Arc<FirebaseUser>
 where
-    AppState: FromRef<S>,
-    S: Send + Sync,
+    AppState: FromRef<AppState>,
+    AppState: Send + Sync,
 {
     type Rejection = UnauthorizedResponse;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         let state = AppState::from_ref(state);
         let auth = state.auth;
 
@@ -61,7 +66,7 @@ where
             Err(e) => Err(UnauthorizedResponse {
                 msg: format!("Failed to verify Token: {}", e),
             }),
-            Ok(current_user) => Ok(current_user),
+            Ok(current_user) => Ok(Arc::new(current_user)),
         }
     }
 }

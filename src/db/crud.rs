@@ -20,20 +20,19 @@ pub struct CreateListForm {
 }
 
 pub async fn write_list(
-    user: FirebaseUser,
+    user: Arc<FirebaseUser>,
     db: Arc<FirestoreDb>,
     Form(form): Form<CreateListForm>,
 ) -> Response {
     let list = List {
         id: Uuid::new_v4(),
         name: form.name,
-        owner: user.clone().user_id,
+        owner: user.user_id.clone(),
         items: vec![],
     };
-    let user = Arc::new(user);
-    let list_clone = list.clone();
     let create_list_future = {
         let db = db.clone();
+        let list_clone = list.clone();
         tokio::spawn(async move {
             db.fluent()
                 .insert()
