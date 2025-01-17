@@ -72,12 +72,12 @@
         <span id="write"></span>
     </div>
     <div class="container mx-auto mt-8">
-        <form hx-post="/todo" hx-target="#todos" hx-swap="beforeend" class="flex items-center">
+        <form hx-post="/lists/create" hx-target="#mylists" hx-swap="beforeend" class="flex items-center">
             <input type="text" name="text" id="text" class="border border-gray-700 bg-gray-800 text-white rounded-lg px-4 py-2 mr-2"
-                placeholder="Add a new todo" />
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Add</button>
+                placeholder="Create a new list" />
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Create</button>
         </form>
-        <ul id="todos" class="mt-4">
+        <ul id="mylists" class="mt-4">
         </ul>
     </div>
 </body>
