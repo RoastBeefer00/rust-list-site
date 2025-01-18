@@ -28,6 +28,10 @@
             } else {
                 let token = await user.getIdToken(true);
                 auth_token = token;
+                htmx.ajax('GET', '/groups', {
+                    target: '#mylists',
+                    swap: 'outerHTML'
+                });
             }
         });
 
@@ -44,41 +48,14 @@
 
         // add the auth token to the request as a header
         htmx.on("htmx:configRequest", (e)=> {
-            console.log(auth_token);
             e.detail.headers["AUTHORIZATION"] = "Bearer " + auth_token
         })
     </script>
-    <title id="title">Todo List</title>
+    <title id="title">Hey, Listen!</title>
 </head>
 
 <body>
-    <div>
-        <h1 class="text-3xl font-bold text-center mt-8" id="title">Todo List</h1>
-    </div>
-    <div class="flex justify-center mt-4">
-        <button hx-get="/auth" hx-target="#auth" hx-trigger="click" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2">Auth</button>
-        <span id="auth"></span>
-    </div>
-    <div class="flex justify-center mt-4">
-        <button hx-post="/write" hx-target="#write" hx-trigger="click" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Write</button>
-        <span id="write"></span>
-    </div>
-    <div class="flex justify-center mt-4">
-        <button hx-post="/update" hx-target="#write" hx-trigger="click" class="bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg px-4 py-2">Update</button>
-        <span id="write"></span>
-    </div>
-    <div class="flex justify-center mt-4">
-        <button hx-post="/delete" hx-target="#write" hx-trigger="click" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2">Delete</button>
-        <span id="write"></span>
-    </div>
-    <div class="container mx-auto mt-8">
-        <form hx-post="/lists/create" hx-target="#mylists" hx-swap="beforeend" class="flex items-center">
-            <input type="text" name="name" id="name" class="border border-gray-700 bg-gray-800 text-white rounded-lg px-4 py-2 mr-2"
-                placeholder="Create a new list" />
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Create</button>
-        </form>
-        <ul id="mylists" class="mt-4">
-        </ul>
+    <div id="mylists">
     </div>
 </body>
 

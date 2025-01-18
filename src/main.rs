@@ -1,25 +1,29 @@
 use anyhow::Result;
 use axum::extract::FromRef;
-use axum::response::IntoResponse;
 use axum::{
     routing::{get, post},
     Router,
 };
-use db::{delete_list, new_db, update_list, write_list};
+use db::new_db;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
-use handlers::{auth, index};
-use uuid::Uuid;
-use views::IndexTemplate;
+use handlers::index;
+use views::{List, ListGroup};
 
 mod db;
 mod handlers;
 mod views;
 
-#[derive(Clone, FromRef)]
+#[derive(Clone)]
 pub struct AppState {
     pub auth: FirebaseAuthState,
     pub db: FirestoreDb,
+}
+
+impl FromRef<AppState> for FirestoreDb {
+    fn from_ref(state: &AppState) -> Self {
+        state.db.clone()
+    }
 }
 
 #[tokio::main]
@@ -36,10 +40,11 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/", get(index))
+        .route("/groups", get(ListGroup::get))
         // .route("/auth", get(auth))
         // .route("/update", post(update_list))
         // .route("/delete", post(delete_list))
-        .route("/lists/create", post(write_list))
+        .route("/lists/create", post(List::write))
         // .route("/todo", post(add_todo))
         // .route("/todo/{id}", delete(remove_todo).patch(toggle_todo))
         .with_state(app_state);

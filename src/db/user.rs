@@ -1,7 +1,8 @@
 use anyhow::{Context, Result};
 use firestore::FirestoreDb;
 
-use firebase_auth::FirebaseUser;
+// use firebase_auth::FirebaseUser;
+use crate::db::FirebaseUser;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

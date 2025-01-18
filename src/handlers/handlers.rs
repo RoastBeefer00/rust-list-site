@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::db::FirebaseUser;
+use crate::views::IndexTemplate;
 use crate::AppState;
 use axum::{
     debug_handler,
@@ -8,9 +8,9 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use firebase_auth::FirebaseUser;
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::views::IndexTemplate;
 
 #[derive(Deserialize, Debug)]
 pub struct AddTodo {
@@ -55,6 +55,6 @@ pub async fn auth(user: FirebaseUser) -> String {
     )
 }
 
-pub async fn index() -> Response {
-    IndexTemplate { todos: Vec::new() }.into_response()
+pub async fn index() -> impl IntoResponse {
+    IndexTemplate { groups: Vec::new() }
 }
