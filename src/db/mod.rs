@@ -1,8 +1,5 @@
-mod auth;
-mod crud;
 mod firestore;
-mod types;
+mod user;
 
-pub use auth::FirebaseUser;
-pub use crud::{delete_list, update_list, write_list};
 pub use firestore::new_db;
+pub use user::User;

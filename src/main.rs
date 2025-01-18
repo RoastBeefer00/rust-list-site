@@ -1,4 +1,5 @@
 use anyhow::Result;
+use axum::extract::FromRef;
 use axum::response::IntoResponse;
 use axum::{
     routing::{get, post},
@@ -15,7 +16,7 @@ mod db;
 mod handlers;
 mod views;
 
-#[derive(Clone)]
+#[derive(Clone, FromRef)]
 pub struct AppState {
     pub auth: FirebaseAuthState,
     pub db: FirestoreDb,
