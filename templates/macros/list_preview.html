@@ -1,7 +1,9 @@
 {% macro listpreview(id,name) %}
 
-<li href="/lists/{{ id }}" class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2">
-    <span>{{ name }}</span>
-</li>
+<a href="/list/{{ id }}">
+    <li class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2">
+        <span>{{ name }}</span>
+    </li>
+</a>
 
 {% endmacro %}

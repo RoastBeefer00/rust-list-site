@@ -79,7 +79,7 @@ impl User {
         let mut tasks = Vec::new();
         for id in self.lists.clone() {
             let db = db.clone();
-            tasks.push(tokio::spawn(async move { List::get(id, &db).await }));
+            tasks.push(tokio::spawn(async move { List::get_view(id, &db).await }));
         }
         for task in tasks {
             let list = task.await??;

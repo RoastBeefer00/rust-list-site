@@ -8,7 +8,7 @@ use db::new_db;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
 use handlers::index;
-use views::{List, ListGroup};
+use views::{List, ListGroup, ListItem};
 
 mod db;
 mod handlers;
@@ -41,12 +41,9 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(index))
         .route("/groups", get(ListGroup::get))
-        // .route("/auth", get(auth))
-        // .route("/update", post(update_list))
-        // .route("/delete", post(delete_list))
-        .route("/lists/create", post(List::write))
-        // .route("/todo", post(add_todo))
-        // .route("/todo/{id}", delete(remove_todo).patch(toggle_todo))
+        .route("/lists/create", post(List::write_view))
+        .route("/list/{id}", get(List::get_view))
+        .route("/list/{list_id}/item/{item_id}", get(ListItem::get))
         .with_state(app_state);
 
     axum::serve(listener, app).await?;

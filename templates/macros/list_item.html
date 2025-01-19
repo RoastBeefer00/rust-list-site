@@ -1,0 +1,9 @@
+{% macro listitem(id,item) %}
+
+<div hx-target="this" hx-swap="outerHTML">
+    <input type="checkbox" id="{{ item.id }}" {% if item.complete %}checked{% endif %}/>
+    <span>{{ item.name }}</span>
+    <button hx-put="/list/{{ id }}/item/{{ item.id }}/edit">Edit</button>
+</div>
+
+{% endmacro %}

@@ -3,7 +3,12 @@ use std::sync::Arc;
 use crate::db::User;
 use anyhow::{Context, Result};
 use askama_axum::Template;
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Form};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Form,
+};
 // use firebase_auth::FirebaseUser;
 use crate::db::FirebaseUser;
 use firestore::FirestoreDb;
@@ -55,7 +60,24 @@ impl List {
             .context("Failed to get list")
     }
 
-    pub async fn write(
+    pub async fn get_view(State(db): State<FirestoreDb>, Path(id): Path<Uuid>) -> Response {
+        match db
+            .fluent()
+            .select()
+            .by_id_in("lists")
+            .obj::<List>()
+            .one(&id.to_string())
+            .await
+        {
+            Ok(res) => match res {
+                Some(list) => list.into_response(),
+                None => (StatusCode::NOT_FOUND, "List not found").into_response(),
+            },
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    }
+
+    pub async fn write_view(
         user: FirebaseUser,
         State(db): State<FirestoreDb>,
         Form(form): Form<CreateListForm>,
@@ -123,7 +145,7 @@ impl List {
         ListPreview::from(list).into_response()
     }
 
-    pub async fn update(
+    pub async fn update_view(
         user: FirebaseUser,
         db: FirestoreDb,
         Form(form): Form<UpdateListForm>,
@@ -152,7 +174,7 @@ impl List {
         (StatusCode::OK).into_response()
     }
 
-    pub async fn delete(_user: FirebaseUser, db: FirestoreDb) -> impl IntoResponse {
+    pub async fn delete_view(_user: FirebaseUser, db: FirestoreDb) -> impl IntoResponse {
         match db
             .fluent()
             .delete()
@@ -165,69 +187,4 @@ impl List {
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
     }
-}
-
-pub async fn write_list(
-    user: FirebaseUser,
-    State(db): State<FirestoreDb>,
-    Form(form): Form<CreateListForm>,
-) -> impl IntoResponse {
-    let list = List {
-        id: Uuid::new_v4(),
-        name: form.name,
-        owner: user.clone().user_id,
-        items: vec![],
-    };
-    let db = Arc::new(db);
-    let user = Arc::new(user);
-    let list_clone = list.clone();
-    let create_list_future = {
-        let db = db.clone();
-        tokio::spawn(async move {
-            db.fluent()
-                .insert()
-                .into("lists")
-                .document_id(&list_clone.id.to_string())
-                .object(&list_clone)
-                .execute::<List>()
-                .await
-        })
-    };
-    let get_user_future = {
-        let db = db.clone();
-        let user = user.clone();
-        tokio::spawn(async move { User::get(&user, &db).await })
-    };
-    if let Err(e) = create_list_future.await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
-    }
-    match get_user_future.await {
-        Ok(result) => match result {
-            Ok(opt) => {
-                if let Some(mut user) = opt {
-                    user.lists.push(list.id);
-                    if let Err(e) = User::update(&user, &db).await {
-                        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
-                    }
-                } else {
-                    match User::create(&user, &db).await {
-                        Ok(mut user) => {
-                            user.lists.push(list.id);
-                            if let Err(e) = User::update(&user, &db).await {
-                                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-                                    .into_response();
-                            }
-                        }
-                        Err(e) => {
-                            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-                                .into_response()
-                        }
-                    }
-                }
-            }
-            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        },
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-    ListPreview::from(list).into_response()
 }

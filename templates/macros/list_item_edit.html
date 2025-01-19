@@ -1,0 +1,19 @@
+{% macro listitem(id,item) %}
+
+<div>
+    <form hx-put="/list/{{ id }}/item/{{ item.id }}">
+        <div>
+            <label>Name</label>
+            <input type="text" name="name" value="{{ item.name }}"/>
+        </div>
+        <div>
+            <label>Complete</label>
+            <input type="checkbox" name="complete" {% if item.complete %}checked{% endif %}/>
+        </div>
+        <button>Save</button>
+        <button hx-get="/list/{{ id }}/item/{{ item.id }}">Cancel</button>
+    </form>
+</div>
+
+{% endmacro %}
+
