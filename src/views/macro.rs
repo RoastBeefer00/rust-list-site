@@ -1,6 +1,6 @@
 use super::{
     index::IndexTemplate, list::List, list_group::ListGroup, list_item::ListItem,
-    list_preview::ListPreview, ListItemEdit,
+    list_preview::ListPreview, ListItemEdit, ListItemText,
 };
 use askama_axum::Template;
 use axum::response::{Html, IntoResponse, Response};
@@ -31,5 +31,6 @@ impl_into_response_for_template!(
     ListItem,
     ListGroup,
     ListPreview,
-    ListItemEdit
+    ListItemEdit,
+    ListItemText
 );

@@ -1,9 +1,11 @@
 {% macro listpreview(id,name) %}
 
-<a href="/list/{{ id }}">
-    <li class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2">
+<li hx-get="/list/{{ id }}" hx-target="#body" hx-swap="innerHTML" class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2 hover:bg-gray-700 cursor-pointer">
+    <div class="w-full">
         <span>{{ name }}</span>
-    </li>
-</a>
+    </div>
+    <button hx-delete="/list/{{ id }}" hx-target="closest li" hx-swap="outerHTML" class="border border-black p-2 text-white bg-red-700 hover:bg-red-800" onclick="event.stopPropagation()">Delete</button>
+</li>
+</li>
 
 {% endmacro %}

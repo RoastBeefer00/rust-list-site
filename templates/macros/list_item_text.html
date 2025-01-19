@@ -1,0 +1,4 @@
+{% macro list_item_text(text, complete) %}
+<span class="flex-1 text-lg text-gray-200 font-medium {% if complete %}line-through{% endif %}">{{ text }}</span>
+{% endmacro %}
+

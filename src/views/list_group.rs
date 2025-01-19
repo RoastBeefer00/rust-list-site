@@ -27,9 +27,14 @@ impl ListGroup {
         ListGroup { owner, lists }
     }
 
-    pub async fn get(user: FirebaseUser, State(db): State<FirestoreDb>) -> Response {
-        let user = User::get(&user, &db).await.unwrap();
-        match user {
+    pub async fn get_view(fb_user: FirebaseUser, State(db): State<FirestoreDb>) -> Response {
+        let user_name = fb_user
+            .clone()
+            .name
+            .unwrap_or_else(|| fb_user.user_id.clone());
+        let user = User::from(&fb_user);
+        let db_user = user.get(&db).await.unwrap();
+        match db_user {
             Some(user) => match user.get_all_lists(&db).await {
                 Ok(lists) => ListGroup {
                     owner: user.name.unwrap_or_else(|| user.id),
@@ -40,7 +45,14 @@ impl ListGroup {
                     return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
                 }
             },
-            None => return (StatusCode::NOT_FOUND).into_response(),
+            None => {
+                user.create(&db).await.unwrap();
+                return ListGroup {
+                    owner: user_name,
+                    lists: vec![],
+                }
+                .into_response();
+            }
         }
     }
 }

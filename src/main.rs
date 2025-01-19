@@ -1,5 +1,6 @@
 use anyhow::Result;
 use axum::extract::FromRef;
+use axum::routing::put;
 use axum::{
     routing::{get, post},
     Router,
@@ -40,10 +41,22 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/groups", get(ListGroup::get))
-        .route("/lists/create", post(List::write_view))
-        .route("/list/{id}", get(List::get_view))
-        .route("/list/{list_id}/item/{item_id}", get(ListItem::get))
+        .route("/groups", get(ListGroup::get_view))
+        .route("/list", post(List::write_view))
+        .route("/list/{id}", get(List::get_view).delete(List::delete_view))
+        .route("/list/{id}/item", post(ListItem::write_view))
+        .route(
+            "/list/{list_id}/item/{item_id}",
+            get(ListItem::get_view).put(ListItem::update_view),
+        )
+        .route(
+            "/list/{list_id}/item/{item_id}/edit",
+            get(ListItem::form_view),
+        )
+        .route(
+            "/list/{list_id}/item/{item_id}/toggle",
+            put(ListItem::toggle_view),
+        )
         .with_state(app_state);
 
     axum::serve(listener, app).await?;

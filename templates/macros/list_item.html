@@ -1,9 +1,10 @@
+{% import "macros/list_item_text.html" as list_item_text %}
 {% macro listitem(id,item) %}
 
-<div hx-target="this" hx-swap="outerHTML">
-    <input type="checkbox" id="{{ item.id }}" {% if item.complete %}checked{% endif %}/>
-    <span>{{ item.name }}</span>
-    <button hx-put="/list/{{ id }}/item/{{ item.id }}/edit">Edit</button>
-</div>
+<li hx-target="this" hx-swap="outerHTML" class="flex items-center space-x-4 p-4 border-b border-gray-700 bg-gray-800 hover:bg-gray-700 rounded-lg shadow-sm">
+    <input type="checkbox" id="{{ item.id }}" class="form-checkbox h-6 w-6 text-blue-400" hx-put="/list/{{ id }}/item/{{ item.id }}/toggle" hx-target="next span" hx-swap="outerHTML" {% if item.complete %}checked{% endif %}/>
+    {% call list_item_text::list_item_text(item.text, item.complete) %}
+    <button hx-get="/list/{{ id }}/item/{{ item.id }}/edit" class="text-blue-400 hover:text-blue-600 font-semibold">Edit</button>
+</li>
 
 {% endmacro %}

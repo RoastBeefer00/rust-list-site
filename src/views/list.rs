@@ -24,7 +24,6 @@ pub struct CreateListForm {
 
 #[derive(Deserialize)]
 struct UpdateListForm {
-    list_id: Uuid,
     text: String,
 }
 
@@ -60,19 +59,20 @@ impl List {
             .context("Failed to get list")
     }
 
-    pub async fn get_view(State(db): State<FirestoreDb>, Path(id): Path<Uuid>) -> Response {
-        match db
-            .fluent()
-            .select()
-            .by_id_in("lists")
-            .obj::<List>()
-            .one(&id.to_string())
+    pub async fn write(&self, db: &FirestoreDb) -> Result<List> {
+        db.fluent()
+            .insert()
+            .into("lists")
+            .document_id(self.id.to_string())
+            .object(self)
+            .execute::<List>()
             .await
-        {
-            Ok(res) => match res {
-                Some(list) => list.into_response(),
-                None => (StatusCode::NOT_FOUND, "List not found").into_response(),
-            },
+            .context("Error writing list")
+    }
+
+    pub async fn get_view(State(db): State<FirestoreDb>, Path(id): Path<Uuid>) -> Response {
+        match Self::get(id, &db).await {
+            Ok(list) => list.into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
     }
@@ -89,24 +89,16 @@ impl List {
             items: vec![],
         };
         let db = Arc::new(db);
-        let user = Arc::new(user);
+        let user = Arc::new(User::from(user));
         let list_clone = list.clone();
         let create_list_future = {
             let db = db.clone();
-            tokio::spawn(async move {
-                db.fluent()
-                    .insert()
-                    .into("lists")
-                    .document_id(&list_clone.id.to_string())
-                    .object(&list_clone)
-                    .execute::<List>()
-                    .await
-            })
+            tokio::spawn(async move { list_clone.write(&db).await })
         };
         let get_user_future = {
             let db = db.clone();
             let user = user.clone();
-            tokio::spawn(async move { User::get(&user, &db).await })
+            tokio::spawn(async move { user.get(&db).await })
         };
         if let Err(e) = create_list_future.await {
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
@@ -116,12 +108,12 @@ impl List {
                 Ok(opt) => {
                     if let Some(mut user) = opt {
                         user.lists.push(list.id);
-                        if let Err(e) = User::update(&user, &db).await {
+                        if let Err(e) = user.update(&db).await {
                             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
                                 .into_response();
                         }
                     } else {
-                        match User::create(&user, &db).await {
+                        match user.create(&db).await {
                             Ok(mut user) => {
                                 user.lists.push(list.id);
                                 if let Err(e) = User::update(&user, &db).await {
@@ -145,41 +137,27 @@ impl List {
         ListPreview::from(list).into_response()
     }
 
-    pub async fn update_view(
-        user: FirebaseUser,
-        db: FirestoreDb,
-        Form(form): Form<UpdateListForm>,
-    ) -> impl IntoResponse {
-        // let list_item = ListItem {
-        //     id: Uuid::new_v4(),
-        //     text: form.text,
-        //     complete: false,
-        // };
-        // match db
-        //     .fluent()
-        //     .update()
-        //     .in_col("lists")
-        //     .document_id(&list.id.h db
-        //     .fluent()
-        //     .update()
-        //     .in_col("lists")
-        //     .document_id(&list.id.tto_string())
-        //     .object(&list)
-        //     .execute::<List>()
-        //     .await
-        // {
-        //     Ok(_) => (StatusCode::CREATED).into_response(),
-        //     Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        // }
-        (StatusCode::OK).into_response()
+    pub async fn update(&self, db: &FirestoreDb) -> Result<List> {
+        db.fluent()
+            .update()
+            .in_col("lists")
+            .document_id(self.id.to_string())
+            .object(self)
+            .execute::<List>()
+            .await
+            .context("Error updating list")
     }
 
-    pub async fn delete_view(_user: FirebaseUser, db: FirestoreDb) -> impl IntoResponse {
+    pub async fn delete_view(
+        _user: FirebaseUser,
+        db: FirestoreDb,
+        Path(id): Path<Uuid>,
+    ) -> impl IntoResponse {
         match db
             .fluent()
             .delete()
             .from("lists")
-            .document_id(69.to_string())
+            .document_id(id.to_string())
             .execute()
             .await
         {

@@ -41,34 +41,33 @@ impl From<&FirebaseUser> for User {
 }
 
 impl User {
-    pub async fn get(user: &FirebaseUser, db: &FirestoreDb) -> Result<Option<User>> {
+    pub async fn get(&self, db: &FirestoreDb) -> Result<Option<User>> {
         db.fluent()
             .select()
             .by_id_in("users")
             .obj()
-            .one(&user.user_id)
+            .one(&self.id)
             .await
             .context("Failed to get user")
     }
 
-    pub async fn create(user: &FirebaseUser, db: &FirestoreDb) -> Result<User> {
-        let user = User::from(user.clone());
+    pub async fn create(&self, db: &FirestoreDb) -> Result<User> {
         db.fluent()
             .insert()
             .into("users")
-            .document_id(&user.id)
-            .object(&user)
+            .document_id(&self.id)
+            .object(self)
             .execute::<User>()
             .await
             .context("Failed to create user")
     }
 
-    pub async fn update(user: &User, db: &FirestoreDb) -> Result<User> {
+    pub async fn update(&self, db: &FirestoreDb) -> Result<User> {
         db.fluent()
             .update()
             .in_col("users")
-            .document_id(&user.id)
-            .object(user)
+            .document_id(&self.id)
+            .object(self)
             .execute::<User>()
             .await
             .context("Failed to update user")
@@ -79,7 +78,7 @@ impl User {
         let mut tasks = Vec::new();
         for id in self.lists.clone() {
             let db = db.clone();
-            tasks.push(tokio::spawn(async move { List::get_view(id, &db).await }));
+            tasks.push(tokio::spawn(async move { List::get(id, &db).await }));
         }
         for task in tasks {
             let list = task.await??;
