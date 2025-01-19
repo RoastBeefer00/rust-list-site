@@ -1,6 +1,6 @@
 use anyhow::Result;
 use axum::extract::FromRef;
-use axum::routing::put;
+use axum::routing::{delete, put};
 use axum::{
     routing::{get, post},
     Router,
@@ -44,10 +44,16 @@ async fn main() -> Result<()> {
         .route("/groups", get(ListGroup::get_view))
         .route("/list", post(List::write_view))
         .route("/list/{id}", get(List::get_view).delete(List::delete_view))
+        .route(
+            "/list/{id}/complete",
+            delete(List::remove_all_complete_view),
+        )
         .route("/list/{id}/item", post(ListItem::write_view))
         .route(
             "/list/{list_id}/item/{item_id}",
-            get(ListItem::get_view).put(ListItem::update_view),
+            get(ListItem::get_view)
+                .put(ListItem::update_view)
+                .delete(ListItem::delete_view),
         )
         .route(
             "/list/{list_id}/item/{item_id}/edit",

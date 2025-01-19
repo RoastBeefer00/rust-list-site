@@ -87,4 +87,14 @@ impl User {
 
         Ok(lists)
     }
+
+    pub async fn grant_access(&mut self, id: Uuid, db: &FirestoreDb) -> Result<User> {
+        self.lists.push(id);
+        self.update(db).await
+    }
+
+    pub async fn remove_access(&mut self, id: Uuid, db: &FirestoreDb) -> Result<User> {
+        self.lists.retain(|&list_id| list_id != id);
+        self.update(db).await
+    }
 }

@@ -107,16 +107,14 @@ impl List {
             Ok(result) => match result {
                 Ok(opt) => {
                     if let Some(mut user) = opt {
-                        user.lists.push(list.id);
-                        if let Err(e) = user.update(&db).await {
+                        if let Err(e) = user.grant_access(list.id, &db).await {
                             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
                                 .into_response();
                         }
                     } else {
                         match user.create(&db).await {
                             Ok(mut user) => {
-                                user.lists.push(list.id);
-                                if let Err(e) = User::update(&user, &db).await {
+                                if let Err(e) = user.grant_access(list.id, &db).await {
                                     return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
                                         .into_response();
                                 }
@@ -149,7 +147,7 @@ impl List {
     }
 
     pub async fn delete_view(
-        _user: FirebaseUser,
+        user: FirebaseUser,
         db: FirestoreDb,
         Path(id): Path<Uuid>,
     ) -> impl IntoResponse {
@@ -161,7 +159,30 @@ impl List {
             .execute()
             .await
         {
-            Ok(_) => (StatusCode::CREATED).into_response(),
+            Ok(_) => {
+                let user = User::from(user);
+                if let Some(mut user) = user.get(&db).await.unwrap() {
+                    if let Err(e) = user.remove_access(id, &db).await {
+                        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+                    } else {
+                        (StatusCode::OK).into_response()
+                    }
+                } else {
+                    (StatusCode::INTERNAL_SERVER_ERROR, "User not found").into_response()
+                }
+            }
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    }
+
+    pub async fn remove_all_complete_view(
+        State(db): State<FirestoreDb>,
+        Path(id): Path<Uuid>,
+    ) -> impl IntoResponse {
+        let mut list = Self::get(id, &db).await.unwrap();
+        list.items.retain(|item| !item.complete);
+        match list.update(&db).await {
+            Ok(_) => list.into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
     }

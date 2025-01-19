@@ -5,6 +5,7 @@
     <input type="checkbox" id="{{ item.id }}" class="form-checkbox h-6 w-6 text-blue-400" hx-put="/list/{{ id }}/item/{{ item.id }}/toggle" hx-target="next span" hx-swap="outerHTML" {% if item.complete %}checked{% endif %}/>
     {% call list_item_text::list_item_text(item.text, item.complete) %}
     <button hx-get="/list/{{ id }}/item/{{ item.id }}/edit" class="text-blue-400 hover:text-blue-600 font-semibold">Edit</button>
+    <button hx-delete="/list/{{ id }}/item/{{ item.id }}" class="text-red-400 hover:text-blue-600 font-semibold">Delete</button>
 </li>
 
 {% endmacro %}
