@@ -10,7 +10,7 @@ pub struct ListItemEditForm {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Template)]
-#[template(path = "list_item_edit.html")]
+#[template(path = "macros/list_item_edit.html")]
 pub struct ListItemEdit {
     pub list_id: Uuid,
     pub item: ListItem,

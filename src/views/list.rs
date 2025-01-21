@@ -48,6 +48,7 @@ impl List {
         }
     }
 
+    // CRUD opeations
     pub async fn get(id: Uuid, db: &FirestoreDb) -> Result<List> {
         db.fluent()
             .select()
@@ -70,6 +71,18 @@ impl List {
             .context("Error writing list")
     }
 
+    pub async fn update(&self, db: &FirestoreDb) -> Result<List> {
+        db.fluent()
+            .update()
+            .in_col("lists")
+            .document_id(self.id.to_string())
+            .object(self)
+            .execute::<List>()
+            .await
+            .context("Error updating list")
+    }
+
+    // View handlers
     pub async fn get_view(State(db): State<FirestoreDb>, Path(id): Path<Uuid>) -> Response {
         match Self::get(id, &db).await {
             Ok(list) => list.into_response(),
@@ -133,17 +146,6 @@ impl List {
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
         ListPreview::from(list).into_response()
-    }
-
-    pub async fn update(&self, db: &FirestoreDb) -> Result<List> {
-        db.fluent()
-            .update()
-            .in_col("lists")
-            .document_id(self.id.to_string())
-            .object(self)
-            .execute::<List>()
-            .await
-            .context("Error updating list")
     }
 
     pub async fn delete_view(

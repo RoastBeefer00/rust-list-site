@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Template, Deserialize, Serialize)]
-#[template(path = "list_preview.html")]
+#[template(path = "macros/list_preview.html")]
 pub struct ListPreview {
     pub id: Uuid,
     pub name: String,

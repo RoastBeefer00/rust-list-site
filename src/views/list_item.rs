@@ -12,7 +12,7 @@ use super::{List, ListItemText};
 use super::{ListItemEdit, ListItemEditForm};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Template)]
-#[template(path = "list_item.html")]
+#[template(path = "macros/list_item.html")]
 pub struct ListItem {
     pub list_id: Uuid,
     pub id: Uuid,
