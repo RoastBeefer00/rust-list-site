@@ -5,9 +5,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.95"
-askama = { version = "0.12.1", features = ["serde", "with-axum"] }
-askama_axum = "0.4.0"
 axum = { version = "0.8.1", features = ["macros"] }
+maud = { git = "https://github.com/lambda-fairy/maud", features = ["axum"] }
 firebase-auth = { version = "0.4.3", features = ["axum"] }
 firestore = "0.44.0"
 jsonwebtoken = "9.3.0"
