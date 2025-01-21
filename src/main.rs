@@ -6,10 +6,11 @@ use axum::{
     Router,
 };
 use db::new_db;
+use db::List;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
 use handlers::index;
-use views::{List, ListGroup, ListItem};
+use views::{ListGroup, ListItem};
 
 mod db;
 mod handlers;

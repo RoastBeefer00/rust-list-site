@@ -1,4 +1,4 @@
-use askama_axum::Template;
+use maud::{html, Markup, Render};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -9,9 +9,14 @@ pub struct ListItemEditForm {
     pub name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Template)]
-#[template(path = "list_item_edit.html")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListItemEdit {
     pub list_id: Uuid,
     pub item: ListItem,
+}
+
+impl Render for ListItemEdit {
+    fn render(&self) -> Markup {
+        html! {}
+    }
 }

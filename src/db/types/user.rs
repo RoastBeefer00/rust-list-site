@@ -2,11 +2,9 @@ use anyhow::{Context, Result};
 use firestore::FirestoreDb;
 
 // use firebase_auth::FirebaseUser;
-use crate::db::FirebaseUser;
+use crate::db::{FirebaseUser, List};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::views::List;
 
 // A user from the site
 // Contains the lists the user has access to

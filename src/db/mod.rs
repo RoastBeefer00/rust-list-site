@@ -1,7 +1,7 @@
 mod auth;
 mod firestore;
-mod user;
+mod types;
 
 pub use auth::FirebaseUser;
 pub use firestore::new_db;
-pub use user::User;
+pub use types::{List, User};

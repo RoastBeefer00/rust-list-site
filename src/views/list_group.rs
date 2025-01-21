@@ -1,25 +1,24 @@
-use crate::db::User;
-use crate::AppState;
-
-use super::List;
-use askama_axum::Template;
+use crate::db::{FirebaseUser, List, User};
 use axum::{
-    debug_handler,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-// use firebase_auth::FirebaseUser;
-use crate::db::FirebaseUser;
 use firestore::FirestoreDb;
+use maud::{html, Markup, Render};
 
 // A grouping of lists
 // Meant to be grouped by owner
-#[derive(Debug, Clone, Template)]
-#[template(path = "list_group.html")]
+#[derive(Debug, Clone)]
 pub struct ListGroup {
     pub owner: String,
     pub lists: Vec<List>,
+}
+
+impl Render for ListGroup {
+    fn render(&self) -> Markup {
+        html! {}
+    }
 }
 
 impl ListGroup {
@@ -40,6 +39,7 @@ impl ListGroup {
                     owner: user.name.unwrap_or_else(|| user.id),
                     lists,
                 }
+                .render()
                 .into_response(),
                 Err(e) => {
                     return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
@@ -51,6 +51,7 @@ impl ListGroup {
                     owner: user_name,
                     lists: vec![],
                 }
+                .render()
                 .into_response();
             }
         }

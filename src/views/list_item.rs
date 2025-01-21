@@ -1,23 +1,34 @@
-use askama_axum::Template;
+use super::{ListItemEdit, ListItemEditForm};
+use crate::db::List;
 use axum::{
     extract::{Form, Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 use firestore::FirestoreDb;
+use maud::{html, Markup, Render};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{List, ListItemText};
-use super::{ListItemEdit, ListItemEditForm};
-
-#[derive(Debug, Clone, Serialize, Deserialize, Template)]
-#[template(path = "list_item.html")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListItem {
     pub list_id: Uuid,
     pub id: Uuid,
     pub text: String,
     pub complete: bool,
+}
+
+impl Render for ListItem {
+    fn render(&self) -> Markup {
+        html! {
+            li hx-target="this" hx-swap="outerHTML" class="flex items-center space-x-4 p-4 border-b border-gray-700 bg-gray-800 hover:bg-gray-700 rounded-lg shadow-sm" {
+                input type="checkbox" id="{{ item.id }}" class="form-checkbox h-6 w-6 text-blue-400" hx-put="/list/{{ id }}/item/{{ item.id }}/toggle" hx-target="next span" hx-swap="outerHTML" checked=(self.complete) {}
+                (self.text().render())
+                button hx-get="/list/{{ id }}/item/{{ item.id }}/edit" class="text-blue-400 hover:text-blue-600 font-semibold" { "Edit" }
+                button hx-delete="/list/{{ id }}/item/{{ item.id }}" class="text-red-400 hover:text-blue-600 font-semibold" { "Delete" }
+            }
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -35,6 +46,10 @@ impl ListItem {
         }
     }
 
+    pub fn text(&self) -> Markup {
+        html! {}
+    }
+
     pub async fn write_view(
         State(db): State<FirestoreDb>,
         Path(list_id): Path<Uuid>,
@@ -46,7 +61,7 @@ impl ListItem {
         if let Err(e) = List::update(&list, &db).await {
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         } else {
-            item.into_response()
+            item.render().into_response()
         }
     }
 
@@ -66,7 +81,7 @@ impl ListItem {
                 Some(list) => {
                     let item = list.items.iter().find(|item| item.id == item_id);
                     match item {
-                        Some(item) => item.clone().into_response(),
+                        Some(item) => item.clone().render().into_response(),
                         None => (StatusCode::NOT_FOUND).into_response(),
                     }
                 }
@@ -88,7 +103,7 @@ impl ListItem {
                     list_id,
                     item: item.clone(),
                 };
-                form.into_response()
+                form.render().into_response()
             }
             None => (StatusCode::NOT_FOUND).into_response(),
         }
@@ -110,7 +125,7 @@ impl ListItem {
         if let Err(e) = List::update(&list, &db).await {
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         } else {
-            item.into_response()
+            item.render().into_response()
         }
     }
 
@@ -129,11 +144,7 @@ impl ListItem {
         if let Err(e) = List::update(&list, &db).await {
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         } else {
-            ListItemText {
-                complete: item.complete,
-                text: item.text,
-            }
-            .into_response()
+            item.text().into_response()
         }
     }
 
@@ -149,7 +160,7 @@ impl ListItem {
         if let Err(e) = List::update(&list, &db).await {
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         } else {
-            item.into_response()
+            item.render().into_response()
         }
     }
 }

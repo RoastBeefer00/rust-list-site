@@ -1,20 +1,19 @@
 use std::sync::Arc;
 
+use crate::db::FirebaseUser;
+use crate::db::List;
 use crate::db::User;
 use anyhow::{Context, Result};
-use askama_axum::Template;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
     Form,
 };
-// use firebase_auth::FirebaseUser;
-use crate::db::FirebaseUser;
 use firestore::FirestoreDb;
+use maud::{html, Markup, Render};
 
-use super::{list_item::ListItem, ListPreview};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -27,15 +26,28 @@ struct UpdateListForm {
     text: String,
 }
 
-// A list
-// Will be a single document in the list_items collection
-#[derive(Debug, Clone, Serialize, Template, Deserialize)]
-#[template(path = "list.html")]
-pub struct List {
-    pub id: Uuid,
-    pub name: String,
-    pub owner: String,
-    pub items: Vec<ListItem>,
+impl Render for List {
+    fn render(&self) -> Markup {
+        html! {
+            div class="max-w-2xl mx-auto p-4" id={ "list-" (self.id)} {
+                h1 class="text-2xl font-bold mb-4" { (self.name) }
+                div class="mb-4" {
+                    form hx-post={ "/list/" (self.id) "/item" } hx-target="#list-items-{{ id }}" hx-swap="beforeend" class="flex space-x-2" {
+                        input type="text" name="text" placeholder="Add something to the list..." class="flex-grow p-2 border border-gray-300 rounded text-black" {}
+                        button class="border border-black p-2 text-white bg-green-700 rounded" { "Add" }
+                    }
+                }
+                div {
+                    ul id={ "list-items-" (self.id) } {
+                        @for item in &self.items {
+                            (item.render())
+                        }
+                    }
+                }
+                button hx-delete={ "list/" (self.id) "/complete" } hx-target="#list-{{ id }}" hx-swap="outerHTML" class="p-2 border border-black text-white rounded mt-4 bg-red-700" { "Remove All Completed" }
+            }
+        }
+    }
 }
 
 impl List {
@@ -45,6 +57,19 @@ impl List {
             name,
             owner,
             items: vec![],
+        }
+    }
+
+    pub fn preview(&self) -> Markup {
+        html! {
+            li hx-get={ "/list/" (self.id) } hx-target="#body" hx-swap="innerHTML" class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2 hover:bg-gray-700 cursor-pointer" {
+                div class="w-full" {
+                    span{ (self.name) }
+                }
+                button hx-delete={ "/list/" (self.id) } hx-target="closest li" hx-swap="outerHTML" class="border border-black p-2 text-white bg-red-700 hover:bg-red-800" onclick="event.stopPropagation()" {
+                    "Delete"
+                }
+            }
         }
     }
 
@@ -72,7 +97,7 @@ impl List {
 
     pub async fn get_view(State(db): State<FirestoreDb>, Path(id): Path<Uuid>) -> Response {
         match Self::get(id, &db).await {
-            Ok(list) => list.into_response(),
+            Ok(list) => list.render().into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
     }
@@ -132,7 +157,7 @@ impl List {
             },
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
-        ListPreview::from(list).into_response()
+        list.preview().into_response()
     }
 
     pub async fn update(&self, db: &FirestoreDb) -> Result<List> {
@@ -182,7 +207,7 @@ impl List {
         let mut list = Self::get(id, &db).await.unwrap();
         list.items.retain(|item| !item.complete);
         match list.update(&db).await {
-            Ok(_) => list.into_response(),
+            Ok(_) => list.render().into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
     }
