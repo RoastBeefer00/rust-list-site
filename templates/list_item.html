@@ -1,4 +1,3 @@
 {% import "macros/list_item.html" as list_item %}
 
-{% let item = self %}
-{% call list_item::listitem(list_id,item) %}
+{% call list_item::listitem(list_id, id, text, complete) %}
