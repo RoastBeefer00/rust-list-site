@@ -10,9 +10,11 @@ askama_axum = "0.4.0"
 axum = { version = "0.8.1", features = ["macros"] }
 firebase-auth = { version = "0.4.3", features = ["axum"] }
 firestore = "0.44.0"
+futures = "0.3.31"
 jsonwebtoken = "9.3.0"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.135"
 tokio = { version = "1.43.0", features = ["full"] }
+tokio-stream = "0.1.17"
 tower-http = "0.6.2"
 uuid = { version = "1.11.1", features = ["serde", "v4"] }

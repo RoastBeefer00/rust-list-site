@@ -1,0 +1,30 @@
+{% import "macros/list_preview.html" as list_preview %}
+
+{% macro listgroup(owner, lists) %}
+
+<div class="flex flex-col">
+    <div>
+        {% if owner == "My".to_string() %}
+            <h1 class="text-3xl font-bold text-center mt-8" id="title">{{ owner }} Lists</h1>
+        {% else %}
+            <h1 class="text-3xl font-bold text-center mt-8" id="title">{{ owner }}'s Lists</h1>
+        {% endif %}
+    </div>
+    <div class="container mx-auto mt-8">
+        <ul id="{{owner}}-lists" class="mt-4">
+            {% for list in lists %}
+                {% let id = list.id.to_string() %}
+                {% let name = list.name.clone() %}
+                {% if owner == "My".to_string() %}
+                    {% call list_preview::listpreview(id, name, true) %}
+                {% else %}
+                    {% call list_preview::listpreview(id, name, false) %}
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+{% endmacro %}
+
+{% call listgroup(owner, lists) %}

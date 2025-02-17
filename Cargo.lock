@@ -2204,10 +2204,12 @@ dependencies = [
  "axum 0.8.1",
  "firebase-auth",
  "firestore",
+ "futures",
  "jsonwebtoken",
  "serde",
  "serde_json",
  "tokio",
+ "tokio-stream",
  "tower-http",
  "uuid",
 ]

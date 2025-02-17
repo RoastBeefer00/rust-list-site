@@ -9,7 +9,7 @@ use db::new_db;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use firestore::FirestoreDb;
 use handlers::index;
-use views::{List, ListGroup, ListItem};
+use views::{List, ListGroups, ListItem, ListShare};
 
 mod db;
 mod handlers;
@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/groups", get(ListGroup::get_view))
+        .route("/groups", get(ListGroups::get_view))
         .route("/list", post(List::write_view))
         .route("/list/{id}", get(List::get_view).delete(List::delete_view))
         .route(
@@ -63,6 +63,8 @@ async fn main() -> Result<()> {
             "/list/{list_id}/item/{item_id}/toggle",
             put(ListItem::toggle_view),
         )
+        .route("/list/share", get(ListShare::view))
+        .route("/list/share/{id}", post(List::share))
         .with_state(app_state);
 
     axum::serve(listener, app).await?;

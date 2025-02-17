@@ -1,13 +1,16 @@
-{% macro listpreview(id,name) %}
+{% macro listpreview(id,name,shareable) %}
 
-<li hx-get="/list/{{ id }}" hx-target="#body" hx-swap="innerHTML" class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2 hover:bg-gray-700 cursor-pointer">
+<li hx-get="/list/{{ id }}" hx-target="#content" hx-swap="innerHTML" class="flex items-center justify-between bg-gray-800 text-white rounded-lg px-4 py-2 mt-2 hover:bg-gray-700 cursor-pointer">
     <div class="w-full">
         <span>{{ name }}</span>
     </div>
-    <button hx-delete="/list/{{ id }}" hx-target="closest li" hx-swap="outerHTML" class="border border-black p-2 text-white bg-red-700 hover:bg-red-800" onclick="event.stopPropagation()">Delete</button>
+    {% if shareable %}
+        <button hx-get="/list/share" hx-target="#share-list" hx-swap="innerHTML" class="rounded p-2 text-white bg-green-700 hover:bg-green-800 mr-2" onclick="event.stopPropagation()">Share</button>
+    {% endif %}
+    <button hx-delete="/list/{{ id }}" hx-target="closest li" hx-swap="outerHTML" class="rounded p-2 text-white bg-red-700 hover:bg-red-800" onclick="event.stopPropagation()">Delete</button>
 </li>
 </li>
 
 {% endmacro %}
 
-{% call listpreview(id,name) %}
+{% call listpreview(id,name,shareable) %}

@@ -7,6 +7,7 @@ use uuid::Uuid;
 pub struct ListPreview {
     pub id: Uuid,
     pub name: String,
+    pub shareable: bool,
 }
 
 impl From<super::List> for ListPreview {
@@ -14,6 +15,7 @@ impl From<super::List> for ListPreview {
         ListPreview {
             id: list.id,
             name: list.name,
+            shareable: false,
         }
     }
 }

@@ -27,6 +27,11 @@ struct UpdateListForm {
     text: String,
 }
 
+#[derive(Deserialize)]
+pub(crate) struct ShareListForm {
+    user_id: Uuid,
+}
+
 // A list
 // Will be a single document in the list_items collection
 #[derive(Debug, Clone, Serialize, Template, Deserialize)]
@@ -98,7 +103,7 @@ impl List {
         let list = List {
             id: Uuid::new_v4(),
             name: form.name,
-            owner: user.clone().user_id,
+            owner: user.clone().email.unwrap_or(user.clone().user_id),
             items: vec![],
         };
         let db = Arc::new(db);
@@ -186,6 +191,24 @@ impl List {
         match list.update(&db).await {
             Ok(_) => list.into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    }
+
+    pub async fn share(
+        State(db): State<FirestoreDb>,
+        Path(id): Path<Uuid>,
+        Form(share_form): Form<ShareListForm>,
+    ) -> impl IntoResponse {
+        let user_id = share_form.user_id;
+        let user = User::from(user_id);
+        if let Some(mut db_user) = user.get(&db).await.unwrap() {
+            if let Err(e) = db_user.grant_access(id, &db).await {
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+            } else {
+                return (StatusCode::OK).into_response();
+            }
+        } else {
+            return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
         }
     }
 }
